@@ -9,6 +9,22 @@ class RSScraper(BaseScraper[RSQuestion]):
     BASE_URL = "https://rsdoc.nic.in/Question/Search_Questions"
 
     def get_url(self, search_string: str, *, fields: list[str] = ["qtitle"]) -> str:
+        """Creates an SQL Query and returns a URL string.
+
+        Parameters
+        ----------
+        search_string: :class:`str`
+            The string to search for in questions.
+        
+        fields: :class:`list[str]`
+            A list of field mames from `RSQuestion` to search in.
+            Defaults to one field, "qtitle".
+        
+        Returns
+        -------
+        :class:`str`
+            The URL string.
+        """
         clauses: list[str] = []
         for field in fields:
             clauses.append(f"{field} LIKE '%{search_string}%'")
@@ -16,6 +32,18 @@ class RSScraper(BaseScraper[RSQuestion]):
         return f"{self.BASE_URL}?whereclause=({clause})"
 
     async def get_page(self, search_string: str):
+        """Requests and retrieves the questions from a page.
+        
+        Parameters
+        ----------
+        search_string: :class:`str`
+            The string to search for.
+        
+        Returns
+        -------
+        :class:`list[RsQuestion]`
+            A list of the parsed `RSQuestion`.  
+        """
         url = self.get_url(search_string)
         headers = {"Content-Type": "application/json"}
         resp = await self.get(str(url), headers=headers)

@@ -47,6 +47,25 @@ class LSScraper(BaseScraper[LSQuestion]):
         search_string: str,
         page_no: int,
     ):
+        """Requests and returns a `Page`.
+
+        Parameters
+        ----------
+        loksabha_no: :class:`int`
+            The Lok Sabha number.
+
+        search_string: :class:`str`
+            The keyword(s) to search for.
+
+        page_no: :class:`int` = 0
+            The page number to retrieve. Defaults to zero.
+            Page size can be configured via the PAGE_SIZE attribute.
+
+        Returns
+        -------
+        :class:`archive.loksabha.models.Page`
+            The Page object.
+        """
         url = self.get_url(
             loksabha_no=loksabha_no, search_string=search_string, page_no=page_no
         )
@@ -55,6 +74,21 @@ class LSScraper(BaseScraper[LSQuestion]):
         return Page(**data)
 
     async def _get_all_pages(self, *, loksabha_no: int, search_string: str):
+        """Calculates the total number of pages and returns a list of asyncio Tasks that can be awaited to get `Page` objects.
+
+        Parameters
+        ----------
+        loksabha_no: :class:`int`
+            The Lok Sabha number.
+
+        search_string: :class:`str`
+            The keyword(s) to search for.
+
+        Returns
+        -------
+        :class:`list[Task[Page]]`
+            The list of asyncio Tasks.
+        """
         initial_task = asyncio.create_task(
             self.get_page(
                 loksabha_no=loksabha_no, page_no=0, search_string=search_string

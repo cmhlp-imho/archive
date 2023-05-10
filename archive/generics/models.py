@@ -19,9 +19,14 @@ class QuestionModel(BaseModel):
     subject: str
 
     def url(self) -> str:
+        """Returns the PDF URL. 
+        Subclasses should implement this method.
+        """
         raise NotImplementedError
 
     async def save_pdf(self, path: Path, client: AsyncClient):
+        """Saves the question's PDF to the given path."""
+        
         resp = await client.get(self.url())
         with path.open("wb") as f:
             f.write(resp.content)
