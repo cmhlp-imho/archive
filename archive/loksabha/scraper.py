@@ -1,7 +1,5 @@
 import asyncio
-from pathlib import Path
 from yarl import URL
-from typing import Any
 
 from archive.generics.scraper import BaseScraper
 from archive.loksabha.models import LSQuestion, Page
@@ -76,7 +74,8 @@ class LSScraper(BaseScraper[LSQuestion]):
         return tasks
 
     async def scrape(self, *, terms: list[str]):
-        tasks: list[asyncio.Task] = []
+        t_type = list[asyncio.Task[Page]]
+        tasks: list[asyncio.Task[t_type]] = []
         for term in terms:
             for lok_no in range(1, 18):
                 coro = self._get_all_pages(loksabha_no=lok_no, search_string=term)

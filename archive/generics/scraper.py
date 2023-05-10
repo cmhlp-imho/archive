@@ -3,7 +3,7 @@ from abc import abstractmethod
 from httpx import AsyncClient
 from logging import getLogger
 from pathlib import Path
-from typing import AsyncGenerator, Generic, TypeVar
+from typing import Any, AsyncGenerator, Generic, TypeVar
 from archive.generics.models import QuestionModel
 
 logger = getLogger(__name__)
@@ -19,7 +19,7 @@ class BaseScraper(Generic[T]):
     def __init__(self, client: AsyncClient):
         self.client = client
 
-    async def get(self, url: str, *args, **kwargs):
+    async def get(self, url: str, *args: Any, **kwargs: Any):
         return await self.client.get(url, *args, **kwargs)
 
     async def __aenter__(self):
@@ -34,11 +34,11 @@ class BaseScraper(Generic[T]):
         return cls(client)
 
     @abstractmethod
-    def scrape(self, *args, **kwargs) -> AsyncGenerator[T, None]:
+    def scrape(self, *args: Any, **kwargs: Any) -> AsyncGenerator[T, None]:
         raise NotImplementedError
 
     @classmethod
-    async def collect(cls, *args, **kwargs):
+    async def collect(cls, *args: Any, **kwargs: Any):
         items: list[T] = []
         async with await cls.new() as s:
             async for item in s.scrape(*args, **kwargs):

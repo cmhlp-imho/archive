@@ -1,6 +1,5 @@
 import asyncio
 
-from pydantic import ValidationError
 from archive.generics.scraper import BaseScraper
 from archive.rajyasabha.models import RSQuestion
 
