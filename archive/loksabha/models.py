@@ -1,11 +1,17 @@
 from datetime import datetime
 from typing import Any
+
 from pydantic import BaseModel, Field, validator
 
 from archive.generics.models import QuestionModel
 
+__all__ = "LSQuestion", "Page"
+
 
 class LSQuestion(QuestionModel):
+
+    __name__ = "LSQ"
+
     title: str
     type: str
     sessionNo: str
@@ -39,6 +45,9 @@ class LSQuestion(QuestionModel):
 
     def url(self):
         return self.files[0]
+
+    def get_date(self):
+        return self.date
 
 
 class Page(BaseModel):

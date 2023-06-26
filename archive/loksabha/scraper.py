@@ -1,8 +1,11 @@
 import asyncio
+
 from yarl import URL
 
 from archive.generics.scraper import BaseScraper
 from archive.loksabha.models import LSQuestion, Page
+
+__all__ = ("LSScraper",)
 
 
 class LSScraper(BaseScraper[LSQuestion]):
@@ -69,7 +72,7 @@ class LSScraper(BaseScraper[LSQuestion]):
         url = self.get_url(
             loksabha_no=loksabha_no, search_string=search_string, page_no=page_no
         )
-        resp = await self.get(str(url))
+        resp = await self.get(str(url), timeout=None)
         data = resp.json()
         return Page(**data)
 

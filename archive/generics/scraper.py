@@ -1,17 +1,19 @@
 from __future__ import annotations
-import asyncio
+
 from abc import abstractmethod
-from httpx import AsyncClient
 from logging import getLogger
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Generic, TypeVar
+from typing import Any, AsyncGenerator, Generic, TypeVar
+
+from httpx import AsyncClient
+
 from archive.generics.models import QuestionModel
 
-if TYPE_CHECKING:
-    from pathlib import Path
+__all__ = ("BaseScraper",)
 
-logger = getLogger(__name__)
 
-T = TypeVar("T", bound=QuestionModel)
+logger = getLogger("archive")
+
+T = TypeVar("T", bound=QuestionModel, covariant=True)
 
 
 class BaseScraper(Generic[T]):
@@ -24,12 +26,16 @@ class BaseScraper(Generic[T]):
 
     async def get(self, url: str, *args: Any, **kwargs: Any):
         """An alias for `httpx.AsyncClient.get`."""
+        logger.debug(f"GET {url}")
         return await self.client.get(url, *args, **kwargs)
 
     async def __aenter__(self):
         return self
 
     async def __aexit__(self, *_):
+        await self.client.aclose()
+
+    async def close(self):
         await self.client.aclose()
 
     @classmethod
@@ -41,25 +47,19 @@ class BaseScraper(Generic[T]):
         return cls(client)
 
     @abstractmethod
-    def scrape(self, *args: Any, **kwargs: Any) -> AsyncGenerator[T, None]:
+    def scrape(
+        self, *args: Any, terms: list[str], **kwargs: Any
+    ) -> AsyncGenerator[T, None]:
         """An async generator that yields QuestionModels.
         Subclasses should implement this.
         """
         raise NotImplementedError
 
     @classmethod
-    async def collect(cls, *args: Any, **kwargs: Any):
+    async def collect(cls, *args: Any, terms: list[str], **kwargs: Any):
         """Calls `scrape` and collects the questions into a list."""
         items: list[T] = []
         async with await cls.new() as s:
-            async for item in s.scrape(*args, **kwargs):
+            async for item in s.scrape(*args, terms=terms, **kwargs):
                 items.append(item)
         return items
-
-    async def save_pdfs(self, questions: list[T], path: Path):
-        """Saves the PDFs of a list of Questions."""
-        async with asyncio.TaskGroup() as tg:
-            for ques in questions:
-                fp = path / f"{type(ques).__qualname__}{ques.number}.pdf"
-                coro = ques.save_pdf(fp, self.client)
-                tg.create_task(coro)
